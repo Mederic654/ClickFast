@@ -16,3 +16,25 @@ Accroc rencontré : un simple USER nginx en fin de Dockerfile faisait planter le
 open() "/run/nginx.pid" failed (13: Permission denied)
 
 Cause : les dossiers où nginx écrit au démarrage (cache, fichier pid) appartiennent à root sur l'image officielle. Complication supplémentaire : /var/run est un lien symbolique vers /run sous Alpine, et un chown -R sur /var/run ne suit pas ce lien - il fallait chown /run directement pour que ça marche. Deuxième blocage indépendant : se binder sur le port 80 demande normalement les droits root ; réglé avec setcap cap_net_bind_service=+ep sur le binaire nginx, qui donne ce droit précis sans lancer le process en root.
+
+3-
+
+API Express (2 routes : POST /scores, GET /scores) + Postgres, lancés à la main avec docker run, options une par une, sans network custom (bridge par défaut).
+
+Commandes utilisées :
+
+```
+docker volume create clickfast-db-data
+docker run -d --name clickfast-db -e POSTGRES_USER=clickfast -e POSTGRES_PASSWORD=clickfast -e POSTGRES_DB=clickfast -p 5432:5432 -v clickfast-db-data:/var/lib/postgresql/data postgres:16-alpine
+docker network inspect bridge
+docker build -t clickfast-scores-api ./api
+docker run -d --name clickfast-scores-api -p 4000:4000 -e DB_HOST=<IP interne> -e DB_PORT=5432 -e DB_USER=clickfast -e DB_PASSWORD=clickfast -e DB_NAME=clickfast clickfast-scores-api
+```
+
+Sans network custom, l'API ne joint Postgres que par son IP interne (trouvée via docker network inspect bridge), pas par son nom, ça représente une étape manuelle en plus à chaque lancement.
+
+Dockerfile de l'API : en une seule étape, pas multi-stage. 
+
+Premier essai raté : npm ci --omit=dev échouait avec "The npm ci command can only install with an existing package-lock.json". Cause : le package-lock.json n'existait pas encore. Corrigé avec npm install --package-lock-only pour le générer sans installer node_modules en local.
+
+Problème rencontré en testant la persistance des données (docker rm + docker run tout neuf sur le même volume, pour vérifier que les scores survivent) : le nouveau conteneur Postgres a reçu une IP interne différente sur le bridge par défaut. L'API, lancée avec l'ancienne IP en variable d'environnement, ne trouvait plus la base (ECONNREFUSED). Il a fallu faire docker network inspect bridge de nouveau pour récupérer la nouvelle IP et relancer l'API.

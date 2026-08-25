@@ -1,9 +1,13 @@
-// Durée 
+// Durée
 const DUREE_PARTIE = 5000;
+// URL 'API scores
+const API_URL = "http://localhost:4000";
 
 const bouton = document.getElementById("button-clicker");
 const affichageScore = document.getElementById("score");
 const affichageChrono = document.getElementById("timer");
+const champPseudo = document.getElementById("username");
+const classement = document.getElementById("leaderboard");
 
 let count = 0;
 let partieEnCours = false;
@@ -45,4 +49,41 @@ function terminerPartie() {
   partieEnCours = false;
   affichageChrono.textContent = "Terminé ! " + count + " clics en 5 s";
   bouton.textContent = "Rejouer";
+
+  envoyerScore(champPseudo.value, count);
 }
+
+async function envoyerScore(username, score) {
+  try {
+    await fetch(API_URL + "/scores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: username || "Anonyme", score }),
+    });
+  } catch (err) {
+    console.error("Envoi du score impossible :", err);
+  } finally {
+    chargerClassement();
+  }
+}
+
+async function chargerClassement() {
+  try {
+    const reponse = await fetch(API_URL + "/scores");
+    if (!reponse.ok) throw new Error("réponse HTTP " + reponse.status);
+    const scores = await reponse.json();
+
+    classement.innerHTML = "";
+    scores.forEach((s) => {
+      const li = document.createElement("li");
+      li.textContent = `${s.username} — ${s.score}`;
+      classement.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Classement indisponible :", err);
+    classement.innerHTML = "<li>Classement indisponible</li>";
+  }
+}
+
+// Premier chargement du classement à l'ouverture de la page
+chargerClassement();
