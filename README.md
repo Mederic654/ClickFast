@@ -51,8 +51,14 @@ docker run -d --name clickfast-scores-api --network clickfast-network -p 4000:40
 
 L'API se connecte désormais avec DB_HOST=clickfast-db (le nom du conteneur)
 
-5- 
+5-
 
 Suppression des valeurs par défaut sur les identifiants de connexion dans server.js (host/user/password ne retombent plus sur localhost/postgres si une variable manque). Ajout d'une vérification au démarrage : si DB_HOST, DB_PORT, DB_USER, DB_PASSWORD ou DB_NAME manque, l'API affiche la liste des variables manquantes et s'arrête.
 
 Ajout d'un .gitignore (node_modules/, .env), d'un api/.env.
+
+6- 
+
+Écriture d'un docker-compose.yml qui regroupe les 4 services (game, scores-api, db, adminer) sur le network et le volume clickfast-db-data déjà créés.  plus aucune valeur en dur dans le fichier compose.
+
+Problème lors du premier lancement (docker compose up -d --build) :
