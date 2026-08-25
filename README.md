@@ -39,7 +39,7 @@ Premier essai raté : npm ci --omit=dev échouait avec "The npm ci command can o
 
 Problème rencontré en testant la persistance des données (docker rm + docker run tout neuf sur le même volume, pour vérifier que les scores survivent) : le nouveau conteneur Postgres a reçu une IP interne différente sur le bridge par défaut. L'API, lancée avec l'ancienne IP en variable d'environnement, ne trouvait plus la base (ECONNREFUSED). Il a fallu faire docker network inspect bridge de nouveau pour récupérer la nouvelle IP et relancer l'API.
 
-4- 
+4-
 
 Création d'un network custom, pour que l'API et la base se joignent par leur nom plutôt que par une IP qui change à chaque recréation
 
@@ -50,3 +50,9 @@ docker run -d --name clickfast-scores-api --network clickfast-network -p 4000:40
 ```
 
 L'API se connecte désormais avec DB_HOST=clickfast-db (le nom du conteneur)
+
+5- 
+
+Suppression des valeurs par défaut sur les identifiants de connexion dans server.js (host/user/password ne retombent plus sur localhost/postgres si une variable manque). Ajout d'une vérification au démarrage : si DB_HOST, DB_PORT, DB_USER, DB_PASSWORD ou DB_NAME manque, l'API affiche la liste des variables manquantes et s'arrête.
+
+Ajout d'un .gitignore (node_modules/, .env), d'un api/.env.
