@@ -33,8 +33,20 @@ docker run -d --name clickfast-scores-api -p 4000:4000 -e DB_HOST=<IP interne> -
 
 Sans network custom, l'API ne joint Postgres que par son IP interne (trouvée via docker network inspect bridge), pas par son nom, ça représente une étape manuelle en plus à chaque lancement.
 
-Dockerfile de l'API : en une seule étape, pas multi-stage. 
+Dockerfile de l'API : en une seule étape, pas multi-stage.
 
 Premier essai raté : npm ci --omit=dev échouait avec "The npm ci command can only install with an existing package-lock.json". Cause : le package-lock.json n'existait pas encore. Corrigé avec npm install --package-lock-only pour le générer sans installer node_modules en local.
 
 Problème rencontré en testant la persistance des données (docker rm + docker run tout neuf sur le même volume, pour vérifier que les scores survivent) : le nouveau conteneur Postgres a reçu une IP interne différente sur le bridge par défaut. L'API, lancée avec l'ancienne IP en variable d'environnement, ne trouvait plus la base (ECONNREFUSED). Il a fallu faire docker network inspect bridge de nouveau pour récupérer la nouvelle IP et relancer l'API.
+
+4- 
+
+Création d'un network custom, pour que l'API et la base se joignent par leur nom plutôt que par une IP qui change à chaque recréation
+
+```
+docker network create clickfast-network
+docker run -d --name clickfast-db --network clickfast-network -e POSTGRES_USER=clickfast -e POSTGRES_PASSWORD=clickfast -e POSTGRES_DB=clickfast -v clickfast-db-data:/var/lib/postgresql/data postgres:16-alpine
+docker run -d --name clickfast-scores-api --network clickfast-network -p 4000:4000 -e DB_HOST=clickfast-db -e DB_PORT=5432 -e DB_USER=clickfast -e DB_PASSWORD=clickfast -e DB_NAME=clickfast clickfast-scores-api
+```
+
+L'API se connecte désormais avec DB_HOST=clickfast-db (le nom du conteneur)
