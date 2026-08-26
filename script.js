@@ -46,3 +46,8 @@ function terminerPartie() {
   affichageChrono.textContent = "Terminé ! " + count + " clics en 5 s";
   bouton.textContent = "Rejouer";
 }
+
+// Export pour les tests Jest (n'existe pas dans le navigateur, d'où le garde-fou)
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { demarrerPartie, terminerPartie, rafraichirChrono };
+}
