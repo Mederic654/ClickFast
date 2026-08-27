@@ -57,8 +57,22 @@ Suppression des valeurs par défaut sur les identifiants de connexion dans serve
 
 Ajout d'un .gitignore (node_modules/, .env), d'un api/.env.
 
-6- 
+6-
 
 Écriture d'un docker-compose.yml qui regroupe les 4 services (game, scores-api, db, adminer) sur le network et le volume clickfast-db-data déjà créés.  plus aucune valeur en dur dans le fichier compose.
 
 Problème lors du premier lancement (docker compose up -d --build) :
+
+palier 1
+
+phase 1 - lint puis test : ajout d'ESLint (config générée avec eslint --init, option "syntax and problems"), script npm run lint dans package.json. Workflow séparé en deux jobs, lint et test, avec needs: lint sur le job test pour que test attende que lint ait réussi.
+
+Phase 2 - publier une image taguée au sha : job build-and-push ajouté, dépend de test, condition if: sur github.ref == 'refs/heads/main' && github.event_name == 'push' pour ne jamais publier depuis une pull request. Authentification via docker/login-action avec deux secrets du repo (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN), publication via docker/build-push-action, tag = ${{ github.sha }}.
+
+
+Phase 3 - mesurer avant d'optimiser : cache: 'npm' était déjà présent sur actions/setup-node depuis la phase 2, donc pas de vraie mesure "avant" disponible. Retiré temporairement, mesuré, remis.
+
+|              | Run total | Job test                                         | Taille image |
+| ------------ | --------- | ------------------------------------------------ | ------------ |
+| Avant cache  | 62s       | 67s                                              | 25,7 Mo      |
+| Après cache | 53s       | ~20s (le plus long des 3 versions en parallèle) | 25,7 Mo      |
