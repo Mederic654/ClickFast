@@ -78,11 +78,17 @@ app.get("/scores", async (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 
-initDb()
-  .then(() => {
-    app.listen(PORT, () => console.log(`API de scores sur le port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("Impossible de se connecter à la base au démarrage", err);
-    process.exit(1);
-  });
+// require.main === module : uniquement quand on lance "node server.js"
+// directement, pas quand un test importe l'app avec require("./server")
+if (require.main === module) {
+  initDb()
+    .then(() => {
+      app.listen(PORT, () => console.log(`API de scores sur le port ${PORT}`));
+    })
+    .catch((err) => {
+      console.error("Impossible de se connecter à la base au démarrage", err);
+      process.exit(1);
+    });
+}
+
+module.exports = app;
