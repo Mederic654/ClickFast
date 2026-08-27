@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "master", "pipeline" ]
+    branches: [ "main", "pipeline" ]
   pull_request:
-    branches: [ "master", "pipeline" ]
+    branches: [ "main", "pipeline" ]
 
 jobs:
   lint:
@@ -42,3 +42,22 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
