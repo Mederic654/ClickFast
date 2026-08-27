@@ -1,0 +1,32 @@
+{
+  "name": "clickfast",
+  "version": "1.0.0",
+  "description": "Journal de bord :",
+  "main": "script.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "npx jest --env=jsdom"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mederic654/ClickFast.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mederic654/ClickFast/issues"
+  },
+  "homepage": "https://github.com/Mederic654/ClickFast#readme",
+  "dependencies": {
+    "jest-environment-jsdom": "^30.4.1",
+    "jquery": "^4.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0"
+  }
+}
