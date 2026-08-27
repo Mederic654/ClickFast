@@ -21,7 +21,8 @@
     "jest-environment-jsdom": "^30.4.1"
   },
   "jest": {
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": ["/node_modules/", "/api/", "/stats-api/"]
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

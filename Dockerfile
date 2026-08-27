@@ -1,4 +1,5 @@
 FROM nginx:alpine3.24
+RUN apk update && apk upgrade --no-cache
 
 RUN apk add --no-cache libcap && \
     setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx

@@ -87,7 +87,7 @@ jobs:
 
     steps:
     - name: Trivy
-      uses: aquasecurity/trivy-action@0.28.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
         severity: 'HIGH,CRITICAL'
@@ -99,7 +99,7 @@ jobs:
 
     steps:
     - name: Générer le SBOM avec Syft
-      uses: anchore/sbom-action@v0
+      uses: anchore/sbom-action@v0.24.0
       with:
         image: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
         format: cyclonedx-json
