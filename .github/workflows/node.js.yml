@@ -80,3 +80,53 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
+
+  security-image:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Trivy
+      uses: aquasecurity/trivy-action@0.28.0
+      with:
+        image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
+        severity: 'HIGH,CRITICAL'
+        exit-code: '1'
+
+  sbom:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Générer le SBOM avec Syft
+      uses: anchore/sbom-action@v0
+      with:
+        image: ${{ secrets.DOCKERHUB_USERNAME }}/clickfast:${{ github.sha }}
+        format: cyclonedx-json
+        output-file: sbom-clickfast-${{ github.sha }}.cdx.json
+        upload-artifact: false
+    - name: Publier le SBOM comme artefact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-clickfast-${{ github.sha }}
+        path: sbom-clickfast-${{ github.sha }}.cdx.json
+
+  security-summary:
+    needs: [security-deps, security-image, sbom]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Résumé sécurité
+      run: |
+        echo "## Résumé sécurité - commit ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Contrôle | Résultat |" >> $GITHUB_STEP_SUMMARY
+        echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+        echo "| Dépendances (npm audit) | ${{ needs.security-deps.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Secrets (gitleaks) | ${{ needs.security-deps.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Image (Trivy) | ${{ needs.security-image.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| SBOM (Syft) | ${{ needs.sbom.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Dépendances et secrets tournent dans le même job (security-deps) : un statut failure ici veut dire l'un des deux, voir les logs du job pour savoir lequel." >> $GITHUB_STEP_SUMMARY
+        echo "Détail des CVE : logs du job Image. Détail des composants : SBOM en artefact téléchargeable sur ce run." >> $GITHUB_STEP_SUMMARY
