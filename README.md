@@ -63,12 +63,29 @@ Ajout d'un .gitignore (node_modules/, .env), d'un api/.env.
 
 Problème lors du premier lancement (docker compose up -d --build) :
 
+7- 
+
+Service stats-api (Python/Flask), route /stats sur la table scores existante, mêmes variables d'env que l'étape 5. 
+
+8- 
+
+3 images taguées 1.0.0 et poussées sur Docker Hub (jamais latest). docker-compose.prod.yml créé (image: au lieu de build:, plus de external). Testé dans un dossier vide avec juste ce fichier + .env : stack complète up, jeu jouable, sans code source.
+
+9- 
+
+Tableau mesures des 3 images :
+
+| Image      | Taille  | Couche max | Froid | Chaud | 1re réponse |
+| ---------- | ------- | ---------- | ----- | ----- | ------------ |
+| clickfast  | 95,8 Mo | 52,3 Mo    | 2,4 s | 1,0 s | 7,1 s        |
+| scores-api | 238 Mo  | 155 Mo     | 3,5 s | 1,1 s | 7,2 s        |
+| stats-api  | 208 Mo  | 87,5 Mo    | 4,2 s | 0,9 s | 7,3 s        |
+
 palier 1
 
 phase 1 - lint puis test : ajout d'ESLint (config générée avec eslint --init, option "syntax and problems"), script npm run lint dans package.json. Workflow séparé en deux jobs, lint et test, avec needs: lint sur le job test pour que test attende que lint ait réussi.
 
 Phase 2 - publier une image taguée au sha : job build-and-push ajouté, dépend de test, condition if: sur github.ref == 'refs/heads/main' && github.event_name == 'push' pour ne jamais publier depuis une pull request. Authentification via docker/login-action avec deux secrets du repo (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN), publication via docker/build-push-action, tag = ${{ github.sha }}.
-
 
 Phase 3 - mesurer avant d'optimiser : cache: 'npm' était déjà présent sur actions/setup-node depuis la phase 2, donc pas de vraie mesure "avant" disponible. Retiré temporairement, mesuré, remis.
 
