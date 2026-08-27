@@ -1,6 +1,5 @@
 // Durée
 const DUREE_PARTIE = 5000;
-// API mock donnée dans le README (Exercice V)
 const API_URL = "https://672e1217229a881691eed80f.mockapi.io/scores";
 
 const bouton = document.getElementById("button-clicker");
