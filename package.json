@@ -19,7 +19,7 @@
   "homepage": "https://github.com/Mederic654/ClickFast#readme",
   "dependencies": {
     "jest-environment-jsdom": "^30.4.1",
-    "jquery": "^4.0.0"
+    "lodash": "4.17.4"
   },
   "jest": {
     "testEnvironment": "jsdom"
