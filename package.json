@@ -4,6 +4,7 @@
   "description": "Journal de bord :",
   "main": "script.js",
   "scripts": {
+    "lint": "eslint .",
     "test": "npx jest --env=jsdom"
   },
   "repository": {
@@ -22,5 +23,10 @@
   },
   "jest": {
     "testEnvironment": "jsdom"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0"
   }
 }
